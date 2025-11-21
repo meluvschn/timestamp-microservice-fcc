@@ -43,9 +43,14 @@ const handleTimestamp = (req, res) => {
 };
 
 // **************************************************
-// ÚLTIMA CORRECCIÓN DE RUTAS (Una sola ruta opcional)
+// RUTAS MÁS SEGURAS (Dos rutas simples y separadas)
 // **************************************************
-app.get("/api/:date?", handleTimestamp);
+
+// 1. Maneja el caso SIN PARÁMETRO (ej: /api o /api/) -> para Tests 7 y 8
+app.get("/api", handleTimestamp); 
+
+// 2. Maneja el caso CON PARÁMETRO (ej: /api/2015-12-25) -> para Tests 2, 3, 4, 5, 6
+app.get("/api/:date", handleTimestamp);
 
 
 // **************************************************
