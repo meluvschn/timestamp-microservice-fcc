@@ -1,15 +1,17 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
+const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-// Ruta base
+// Página base
 app.get("/", (req, res) => {
   res.send("Timestamp Microservice");
 });
 
-//  RUTA PARA /api → fecha actual
+// ===============================
+//   RUTAS PARA /api y /api/
+// ===============================
 app.get("/api", (req, res) => {
   const now = new Date();
   res.json({
@@ -18,24 +20,35 @@ app.get("/api", (req, res) => {
   });
 });
 
-//  RUTA PARA /api/:date
-app.get("/api/:date", (req, res) => {
-  const dateString = req.params.date;
+app.get("/api/", (req, res) => {
+  const now = new Date();
+  res.json({
+    unix: now.getTime(),
+    utc: now.toUTCString()
+  });
+});
+
+// ===============================
+//       RUTA PARA PARAMETROS
+// ===============================
+app.get("/api/:date_string", (req, res) => {
+  const dateString = req.params.date_string;
+
   let date;
 
-  // Si es número, interpretarlo como timestamp
+  // Si es número → timestamp
   if (!isNaN(dateString)) {
     date = new Date(parseInt(dateString));
   } else {
     date = new Date(dateString);
   }
 
-  // Validar fecha
+  // Fecha inválida
   if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // Respuesta correcta
+  // Fecha válida
   res.json({
     unix: date.getTime(),
     utc: date.toUTCString()
@@ -44,5 +57,5 @@ app.get("/api/:date", (req, res) => {
 
 // Servidor
 const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor funcionando en el puerto " + listener.address().port);
+  console.log("Servidor escuchando en el puerto " + listener.address().port);
 });
