@@ -4,90 +4,65 @@ const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-// Página base
+// 1. RUTA DE INICIO
 app.get("/", (req, res) => {
-  res.send("Timestamp Microservice");
+  res.send('<h1>Timestamp Microservice API</h1><p>Use /api/date_string or /api/timestamp</p>');
 });
 
-// ===============================
-//   RUTAS PARA /api y /api/
-// ===============================
+
+// **************************************************
+// FUNCIÓN CENTRAL CON LA LÓGICA DE VALIDACIÓN
+// **************************************************
+
+// Nota: Esta función ya no necesita manejar el caso de fecha actual (Tests 7 y 8)
+// porque la ruta lo maneja por separado.
+const handleTimestampLogic = (req, res) => {
+    const dateString = req.params.date_string;
+    let date;
+
+    // A. Verificar si es un número (Timestamp)
+    if (!isNaN(dateString)) {
+        // CORRECCIÓN CLAVE: Usamos Number() para manejar el timestamp grande (milisegundos)
+        date = new Date(Number(dateString)); 
+    } else {
+        // B. Es una cadena de fecha normal
+        date = new Date(dateString);
+    }
+
+    // Validación de Fecha Inválida
+    if (date.toString() === "Invalid Date") {
+        return res.json({ error: "Invalid Date" });
+    }
+
+    // Respuesta Válida
+    res.json({
+        unix: date.getTime(),
+        utc: date.toUTCString()
+    });
+};
+
+// **************************************************
+// RUTAS SEGURAS Y SEPARADAS (Solución a Tests 7 y 8)
+// **************************************************
+
+// 1. RUTA PARA FECHA ACTUAL (TESTS 7 y 8)
+// Maneja solicitudes a /api y /api/
 app.get("/api", (req, res) => {
-  const now = new Date();
-  res.json({
-    unix: now.getTime(),
-    utc: now.toUTCString()
-  });
+    const now = new Date();
+    res.json({
+        unix: now.getTime(),
+        utc: now.toUTCString()
+    });
 });
 
-app.get("/api/", (req, res) => {
-  const now = new Date();
-  res.json({
-    unix: now.getTime(),
-    utc: now.toUTCString()
-  });
-});
+// 2. RUTA PARA PARÁMETROS (TESTS 2 a 6)
+// Maneja solicitudes con parámetro (ej: /api/2015-12-25)
+app.get("/api/:date_string", handleTimestampLogic);
 
-// ===============================
-//       RUTA PARA PARAMETROS
-// ===============================
-app.get("/api/:date_string", (req, res) => {
-  const dateString = req.params.date_string;
 
-  let date;
-
-  // Si es número → timestamp
-  if (!isNaN(dateString)) {
-    date = new Date(parseInt(dateString));
-  } else {
-    date = new Date(dateString);
-  }
-
-  // Fecha inválida
-  if (date.toString() === "Invalid Date") {
-    return res.json({ error: "Invalid Date" });
-  }
-
-  // Fecha válida
-  res.json({
-    unix: date.getTime(),
-    utc: date.toUTCString()
-  });
-});
-
-// Servidor
+// **************************************************
+// INICIA EL SERVIDOR
+// **************************************************
 const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor escuchando en el puerto " + listener.address().port);
-});
-// … tu código express y cors arriba
-
-app.get("/api", (req, res) => {
-  console.log("LLEGÓ /api con req.path:", req.path, "req.params:", req.params);
-  const now = new Date();
-  res.json({ unix: now.getTime(), utc: now.toUTCString() });
-});
-
-app.get("/api/", (req, res) => {
-  console.log("LLEGÓ /api/ con req.path:", req.path, "req.params:", req.params);
-  const now = new Date();
-  res.json({ unix: now.getTime(), utc: now.toUTCString() });
-});
-
-app.get("/api/:date_string", (req, res) => {
-  console.log("LLEGÓ /api/:date_string con date_string =", req.params.date_string);
-  const ds = req.params.date_string;
-  let date;
-  if (!isNaN(ds)) {
-    date = new Date(parseInt(ds));
-  } else {
-    date = new Date(ds);
-  }
-  console.log("Parsed date:", date);
-
-  if (date.toString() === "Invalid Date") {
-    console.log("Invalid date detectada");
-    return res.json({ error: "Invalid Date" });
-  }
-
-  res.json({ unix: date.getTime(), utc: date.toUTCString() });
+  console.log('Tu aplicación está escuchando en el puerto ' + listener.address().port);
 });
