@@ -47,7 +47,7 @@ const handleTimestampLogic = (req, res) => {
 
 // 1. RUTA PARA FECHA ACTUAL (TESTS 7 y 8)
 // Maneja solicitudes a /api y /api/
-app.get("/api", (req, res) => {
+app.get("/api/?", (req, res) => { // ...
     const now = new Date();
     res.json({
         unix: now.getTime(),
