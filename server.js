@@ -1,53 +1,66 @@
-// server.js
-
-const express = require("express");
-const cors = require("cors");
-
+const express = require('express');
 const app = express();
 
-// Enable CORS
-app.use(cors({ optionsSuccessStatus: 200 }));
+// Middleware para evitar problemas de CORS.
+const cors = require('cors');
+app.use(cors({ optionsSuccessStatus: 200 })); 
 
-// Ruta base
+// **************************************************
+// 1. RUTA DE INICIO (Página de documentación simple)
+// **************************************************
 app.get("/", (req, res) => {
-  res.send("Timestamp Microservice");
+  res.send('<h1>Timestamp Microservice API</h1><p>Use /api/[date] or /api/[timestamp]</p>');
 });
 
-// ===============================
-//       RUTA PRINCIPAL API
-// ===============================
 
-// Ruta con parámetro opcional
-app.get("/api/:date?", (req, res) => {
-  let dateString = req.params.date;
-  let date;
+// **************************************************
+// 2. MANEJO DE FECHA ACTUAL (TESTS 7 y 8)
+// **************************************************
+// Esta ruta simple maneja /api y /api/ sin confusión.
+app.get("/api", (req, res) => {
+    const now = new Date();
+    res.json({
+        unix: now.getTime(),
+        utc: now.toUTCString()
+    });
+});
 
-  // Caso sin parámetro -> fecha actual
-  if (!dateString) {
-    date = new Date();
-  } else {
-    // Si el parámetro es un número → timestamp
+
+// **************************************************
+// 3. MANEJO DE PARÁMETROS (TESTS 2 a 6) - Ruteo con REGEX
+// **************************************************
+// Usamos una expresión regular para CAPTURAR cualquier cosa que SIGA a /api/
+app.get(/^\/api\/(.+)$/, (req, res) => {
+    
+    // El parámetro capturado por la expresión regular se encuentra en req.params[0]
+    const dateString = req.params[0]; 
+    let date;
+
+    // A. Verificar si es un número (Timestamp)
     if (!isNaN(dateString)) {
-      date = new Date(parseInt(dateString));
+        // Usamos Number() para manejar el timestamp grande (milisegundos)
+        date = new Date(Number(dateString)); 
     } else {
-      // Si es una fecha tipo string (YYYY-MM-DD)
-      date = new Date(dateString);
+        // B. Es una cadena de fecha normal
+        date = new Date(dateString);
     }
-  }
 
-  // Validación de fecha inválida
-  if (date.toString() === "Invalid Date") {
-    return res.json({ error: "Invalid Date" });
-  }
+    // Validación de Fecha Inválida
+    if (date.toString() === "Invalid Date") {
+        return res.json({ error: "Invalid Date" });
+    }
 
-  // Devolver formato requerido
-  res.json({
-    unix: date.getTime(),
-    utc: date.toUTCString()
-  });
+    // Respuesta Válida
+    res.json({
+        unix: date.getTime(),
+        utc: date.toUTCString()
+    });
 });
 
-// Servidor
+
+// **************************************************
+// INICIA EL SERVIDOR
+// **************************************************
 const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor escuchando en puerto " + listener.address().port);
+  console.log('Tu aplicación está escuchando en el puerto ' + listener.address().port);
 });
