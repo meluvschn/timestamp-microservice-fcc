@@ -43,18 +43,9 @@ const handleTimestamp = (req, res) => {
 };
 
 // **************************************************
-// RUTAS CORREGIDAS (Asegurando /api y /api/ funcionen)
+// ÚLTIMA CORRECCIÓN DE RUTAS (Una sola ruta opcional)
 // **************************************************
-
-// Ruta A: Maneja la ruta base SIN barra final (ej: /api)
-app.get("/api", handleTimestamp); 
-
-// *** NUEVA CORRECCIÓN ***
-// Ruta A-2: Maneja la ruta base CON barra final (ej: /api/)
-app.get("/api/", handleTimestamp); 
-
-// Ruta B: Maneja el caso CON PARÁMETRO (ej: /api/2015-12-25)
-app.get("/api/:date", handleTimestamp); 
+app.get("/api/:date?", handleTimestamp);
 
 
 // **************************************************
