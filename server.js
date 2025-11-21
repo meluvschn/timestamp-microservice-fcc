@@ -11,46 +11,55 @@ app.get("/", (req, res) => {
 });
 
 // **************************************************
-// FUNCIÓN CENTRAL CON LA LÓGICA DEL MICROSERVICE
+// FUNCIÓN ESPECÍFICA PARA LA FECHA ACTUAL (PARA TESTS 7 y 8)
+// **************************************************
+const handleCurrentTime = (req, res) => {
+    // Esta función solo crea la fecha y la devuelve.
+    const date = new Date();
+    res.json({
+        unix: date.getTime(),
+        utc: date.toUTCString()
+    });
+};
+
+// **************************************************
+// FUNCIÓN CENTRAL CON LA LÓGICA DEL MICROSERVICE (MANEJA PARÁMETROS)
 // **************************************************
 const handleTimestamp = (req, res) => {
-  const dateString = req.params.date; 
-  let date;
+    // Nota: Esta función SOLO se llama cuando hay un :date en la URL.
+    const dateString = req.params.date; 
+    let date;
 
-  // 1. Caso: Sin parámetro (ej: /api) -> Usar la hora actual
-  if (!dateString) {
-    date = new Date();
-  
-  // 2. Caso: Si el parámetro es un número largo (Posible Unix timestamp en milisegundos)
-  } else if (!isNaN(dateString) && dateString.length > 8) {
-    date = new Date(Number(dateString));
-  
-  // 3. Caso: Si es una cadena de texto (Fecha normal)
-  } else {
-    date = new Date(dateString);
-  }
+    // 1. Caso: El parámetro es un número largo (Posible Unix timestamp en milisegundos)
+    if (!isNaN(dateString) && dateString.length > 8) {
+        date = new Date(Number(dateString));
+    
+    // 2. Caso: Si es una cadena de texto (Fecha normal)
+    } else {
+        date = new Date(dateString);
+    }
 
-  // ********* VALIDACIÓN Y RESPUESTA *********
-  if (date.toString() === "Invalid Date") {
-    return res.json({ error: "Invalid Date" });
-  }
+    // ********* VALIDACIÓN Y RESPUESTA *********
+    if (date.toString() === "Invalid Date") {
+        return res.json({ error: "Invalid Date" });
+    }
 
-  // 5. Caso: Fecha Válida
-  res.json({
-    unix: date.getTime(),      // Unix timestamp en milisegundos
-    utc: date.toUTCString()    // Fecha en formato UTC
-  });
+    // Caso Válido
+    res.json({
+        unix: date.getTime(),
+        utc: date.toUTCString()
+    });
 };
 
 // **************************************************
 // RUTAS MÁS SEGURAS (Dos rutas simples y separadas)
 // **************************************************
 
-// 1. Maneja el caso SIN PARÁMETRO (ej: /api o /api/) -> para Tests 7 y 8
-app.get("/api", handleTimestamp); 
+// 1. MANEJA LOS TESTS 7 y 8 (ej: /api y /api/)
+app.get("/api", handleCurrentTime); 
 
-// 2. Maneja el caso CON PARÁMETRO (ej: /api/2015-12-25) -> para Tests 2, 3, 4, 5, 6
-app.get("/api/:date", handleTimestamp);
+// 2. MANEJA LOS TESTS 2, 3, 4, 5, 6 (ej: /api/2015-12-25)
+app.get("/api/:date", handleTimestamp); 
 
 
 // **************************************************
