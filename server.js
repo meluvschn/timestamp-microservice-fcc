@@ -59,3 +59,35 @@ app.get("/api/:date_string", (req, res) => {
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Servidor escuchando en el puerto " + listener.address().port);
 });
+// … tu código express y cors arriba
+
+app.get("/api", (req, res) => {
+  console.log("LLEGÓ /api con req.path:", req.path, "req.params:", req.params);
+  const now = new Date();
+  res.json({ unix: now.getTime(), utc: now.toUTCString() });
+});
+
+app.get("/api/", (req, res) => {
+  console.log("LLEGÓ /api/ con req.path:", req.path, "req.params:", req.params);
+  const now = new Date();
+  res.json({ unix: now.getTime(), utc: now.toUTCString() });
+});
+
+app.get("/api/:date_string", (req, res) => {
+  console.log("LLEGÓ /api/:date_string con date_string =", req.params.date_string);
+  const ds = req.params.date_string;
+  let date;
+  if (!isNaN(ds)) {
+    date = new Date(parseInt(ds));
+  } else {
+    date = new Date(ds);
+  }
+  console.log("Parsed date:", date);
+
+  if (date.toString() === "Invalid Date") {
+    console.log("Invalid date detectada");
+    return res.json({ error: "Invalid Date" });
+  }
+
+  res.json({ unix: date.getTime(), utc: date.toUTCString() });
+});
